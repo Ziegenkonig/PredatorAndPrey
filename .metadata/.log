@@ -1,0 +1,30 @@
+!SESSION 2017-04-17 19:29:07.783 -----------------------------------------------
+eclipse.buildId=4.5.2.M20160212-1500
+java.version=1.8.0_121
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.java.product -product org.eclipse.epp.package.java.product -product org.eclipse.epp.package.java.product
+Command-line arguments:  -os win32 -ws win32 -arch x86 -product org.eclipse.epp.package.java.product -product org.eclipse.epp.package.java.product -data C:\Users\Ziegenkonig\Documents\School\Artificial Intelligence\Project\ProjectDirectory\PredatorAndPrey -product org.eclipse.epp.package.java.product
+
+!ENTRY org.eclipse.egit.ui 2 0 2017-04-17 19:29:12.732
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\Ziegenkonig'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY org.eclipse.e4.ui.importer 4 0 2017-04-17 19:30:07.347
+!MESSAGE Could not import project located at C:\Users\Ziegenkonig\Documents\School\Artificial Intelligence\Project\ProjectDirectory\PredatorAndPrey
+!STACK 0
+org.eclipse.ui.internal.wizards.datatransfer.CouldNotImportProjectException: Could not import project located at C:\Users\Ziegenkonig\Documents\School\Artificial Intelligence\Project\ProjectDirectory\PredatorAndPrey
+	at org.eclipse.ui.internal.wizards.datatransfer.EasymportJob.toExistingOrNewProject(EasymportJob.java:480)
+	at org.eclipse.ui.internal.wizards.datatransfer.EasymportJob.run(EasymportJob.java:197)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:55)
+Caused by: org.eclipse.core.internal.resources.ResourceException: Invalid project description.
+	at org.eclipse.core.internal.resources.Project.checkDescription(Project.java:168)
+	at org.eclipse.core.internal.resources.Project.assertCreateRequirements(Project.java:52)
+	at org.eclipse.core.internal.resources.Project.create(Project.java:268)
+	at org.eclipse.core.internal.resources.Project.create(Project.java:252)
+	at org.eclipse.ui.internal.wizards.datatransfer.EasymportJob.createOrImportProject(EasymportJob.java:524)
+	at org.eclipse.ui.internal.wizards.datatransfer.EasymportJob.toExistingOrNewProject(EasymportJob.java:465)
+	... 2 more
