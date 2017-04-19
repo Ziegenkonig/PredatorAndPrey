@@ -18,11 +18,14 @@ public class Controller {
     private GridAppFrame gui;
     
     private int tickCounter;
+    Predator predator;
+    Prey[] preyArray;
     
     /** Constructs a new Controller object. **/
     public Controller(GridAppFrame gui) {
         this.gui = gui;
         tickCounter = 0;
+        this.predator = new Predator();
     }
     
     //Runs once the start button is pressed
@@ -31,22 +34,21 @@ public class Controller {
     	
     	//Initializing the objects in the grid
     	Grass.fillGrid(grid);
-    	Predator predator = new Predator();
     	predator.initialize(grid);
     	Water.waterPopulate(grid);
-    	Prey[] preyArray = Prey.preyPopulate(grid);
+    	preyArray = Prey.preyPopulate(grid);
     	
     	gui.showGrid();
     	
     	while (tickCounter <= 50) {
     		
-    		predator.roam(grid);
-    		for (Prey prey : preyArray)
-    			prey.roam(grid);
+    		predator.stateController(grid, preyArray);
+    		
+//    		for (Prey prey : preyArray)
+//    			prey.roam(grid);
     		
     		gui.showGrid();
     		tick();
-    		tickCounter++;
     	}
     }
     
@@ -54,6 +56,9 @@ public class Controller {
     public void tick(){
     	try {
 			Thread.sleep(100);
+			tickCounter++;
+			predator.decay();
+			
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
