@@ -3,15 +3,22 @@ package Algorithms;
 import java.util.ArrayList;
 import java.util.List;
 
+import Terrain.Grass;
 import edu.kzoo.grid.Direction;
 import edu.kzoo.grid.Grid;
+import edu.kzoo.grid.GridObject;
 import edu.kzoo.grid.Location;
 
 public class SimulatedAnnealing {
 	//Returns distance between two points
-	public static double distanceFormula(int x1, int x2, int y1, int y2) {
+	public static double distanceFormula(Location location1, Location location2) {
+		double test;
 		
-		double test = Math.sqrt( (double)(x1-x2)*(double)(x1-x2) + (double)(y1-y2)*(double)(y2-y1) );
+		if ( (location1.row() + location1.col()) >= (location2.row() + location2.col()) )
+			test = Math.sqrt( (Math.pow((location1.row() - location2.row()), 2)) + (Math.pow((location1.col() - location2.col()), 2)) );
+		else 
+			test = Math.sqrt( (Math.pow((location2.row() - location1.row()), 2)) + (Math.pow((location2.col() - location1.col()), 2)) );
+		
 		return test;
 		
 	}
@@ -21,23 +28,25 @@ public class SimulatedAnnealing {
 		//If new solution is better, accept
 		if (newEnergy < currentEnergy)
 			return 1.0;
-
+		
+		double prob = (double)Math.exp((currentEnergy - newEnergy) / temperature);
 		//If new solution is worse, calculate an acceptance probability
-		return Math.exp((currentEnergy - newEnergy) / temperature);
+		return Math.exp( (currentEnergy - newEnergy) / temperature );
 	}
 	
 	//Returns the best single move that will get you closer to the desired target
-	public static Location simulatedAnnealingMove(Grid grid, Location initialLocation, Location finalLocation) {
-		//bestMove keeps track of the best move found by simulated annealing
-		Location bestMove = new Location(0,0);
+	public static Location simulatedAnnealingMove(Grid grid, GridObject object1, GridObject object2) {
+		
+		//Setting the locations of object1 and object2
+		Location initialLoc = object1.location();
+		Location finalLoc = object2.location();
 		
 		//set initial temp - this will determine how long the algorithm runs
-		double temp = 1000;
+		double temp = 1000000.0;
 		
 		//set cooling rate - this will determine how quickly temp decreases
 		double coolingRate = .003;
 		
-		double newEnergy;
 		//Loop until system has cooled
 		while (temp > 1) {
 			//Creat new location
@@ -46,43 +55,40 @@ public class SimulatedAnnealing {
 			//Get some random direction to move in
 			Direction randomDirection = Direction.randomDirection();
 			
-			if (grid.getNeighbor(initialLocation, randomDirection).col() >= 0 &&
-				grid.getNeighbor(initialLocation, randomDirection).row() >= 0) {
+			//Check to make sure new location will be acceptable
+			if ( grid.isValid(grid.getNeighbor(initialLoc, randomDirection)) &&
+			   ( grid.objectAt(grid.getNeighbor(initialLoc, randomDirection)) ) instanceof Grass) {
 				//set newLoc to new location one space away from initialLocation in random direction
-				newLoc = grid.getNeighbor(initialLocation, randomDirection);
+				newLoc = grid.getNeighbor(initialLoc, randomDirection);
 				
 				//Check new distance formula (newEnergy) and current distance formula (currentEnergy)
 				//We pass this into the accepted probability function
-				newEnergy = distanceFormula(newLoc.row(), finalLocation.row(), 
-												   newLoc.col(), finalLocation.col());
-				double currentEnergy = distanceFormula(initialLocation.row(), finalLocation.row(),
-						 					  		   initialLocation.col(), finalLocation.col());
-				double bestEnergy = distanceFormula(bestMove.row(), finalLocation.row(),
-						  							bestMove.col(), finalLocation.col());
+				double newEnergy = distanceFormula(newLoc, finalLoc);
+				double currentEnergy = distanceFormula(initialLoc, finalLoc);
 				
 				//Decide if we accept the new location
-				if ( acceptanceProbability(currentEnergy, newEnergy, temp) > Math.random())
-					initialLocation = newLoc;
-				
-				//Setting best to newLoc if newLoc is better
-				if ( currentEnergy < bestEnergy)
-					bestMove = newLoc;
+				if ( acceptanceProbability(currentEnergy, newEnergy, (coolingRate/temp)) > Math.random() )
+					return newLoc;
 				
 				//cool system
 				temp *= 1-coolingRate;
 			}
 		}
 		
-		return bestMove;
+		return null;
 	}
 	
 	//Returns the best path that will deliver you to the specified target
-	public static List<Location> simulatedAnnealingPath(Grid grid, Location initialLocation, Location finalLocation) {
+	public static List<Location> simulatedAnnealingPath(Grid grid, GridObject object1, GridObject object2) {
 		//bestMove keeps track of the best move found by simulated annealing
 		ArrayList<Location> bestPath = new ArrayList<Location>();
 		
 		//set initial temp - this will determine how long the algorithm runs
 		double temp = 1000;
+		
+		//Setting the locations of object1 and object2
+		Location initialLoc = object1.location();
+		Location finalLoc = object2.location();
 		
 		//set cooling rate - this will determine how quickly temp decreases
 		double coolingRate = .003;
@@ -98,23 +104,20 @@ public class SimulatedAnnealing {
 			//Get some random direction to move in
 			Direction randomDirection = Direction.randomDirection();
 			
-			if (grid.getNeighbor(initialLocation, randomDirection).col() >= 0 &&
-				grid.getNeighbor(initialLocation, randomDirection).row() >= 0) {
+			if ( grid.isValid(grid.getNeighbor(initialLoc, randomDirection)) &&
+					   ( grid.objectAt(grid.getNeighbor(initialLoc, randomDirection)) ) instanceof Grass) {
 				//set newLoc to new location one space away from initialLocation in random direction
-				newLoc = grid.getNeighbor(initialLocation, randomDirection);
+				newLoc = grid.getNeighbor(initialLoc, randomDirection);
 			
 				//Check new distance formula (newEnergy) and current distance formula (currentEnergy)
 				//We pass this into the accepted probability function
-				double newEnergy = distanceFormula(newLoc.row(), finalLocation.row(), 
-												   newLoc.col(), finalLocation.col());
-				double currentEnergy = distanceFormula(initialLocation.row(), finalLocation.row(),
-						 					  		   initialLocation.col(), finalLocation.col());
-				double bestEnergy = distanceFormula(bestPath.get(currentIndex).row(), finalLocation.row(),
-						  							bestPath.get(currentIndex).col(), finalLocation.col());
+				double newEnergy = distanceFormula(newLoc, finalLoc);
+				double currentEnergy = distanceFormula(initialLoc, finalLoc);
+				double bestEnergy = distanceFormula(bestPath.get(currentIndex), finalLoc);
 				
 				//Decide if we accept the new location
 				if ( acceptanceProbability(currentEnergy, newEnergy, temp) > Math.random())
-					initialLocation = newLoc;
+					initialLoc = newLoc;
 				
 				//Setting best to newLoc if newLoc is better
 				if ( currentEnergy < bestEnergy) {

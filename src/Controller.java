@@ -36,16 +36,20 @@ public class Controller {
     	Grass.fillGrid(grid);
     	predator.initialize(grid);
     	Water.waterPopulate(grid);
-    	preyArray = Prey.preyPopulate(grid);
+    	Prey prey = new Prey();
+    	preyArray = prey.preyPopulate(grid);
     	
     	gui.showGrid();
     	
     	while (tickCounter <= 50) {
     		
-    		predator.stateController(grid, preyArray);
+    		//Here we are printing important info into the console for debugging
+    		System.out.println("|Predator's Hunger: " + predator.hunger + " | Currently: " + predator.state + " | Turn: " + tickCounter);
     		
-//    		for (Prey prey : preyArray)
-//    			prey.roam(grid);
+    		predator.stateController(preyArray);
+    		
+//    		for (Prey currentPrey : preyArray)
+//    			currentPrey.roam(grid);
     		
     		gui.showGrid();
     		tick();

@@ -17,16 +17,18 @@ public class Prey extends PictureBlock {
 	double hunger; //refilled by eating from grass terrain
 	double thirst; //refilled by drinking from water terrain
 	Location position;
+	Grid grid;
 	
 	public Prey() {
-		super("resources/Prey.png", "Predator");
+		super("resources/Prey.png", "Prey");
 		this.hunger = 100.0;
 		this.thirst = 100.0;
 		this.position = new Location(0,0);
 	}
 	
 	//Randomly populates the grid with 3 prey
-	public static Prey[] preyPopulate(Grid grid) {
+	public Prey[] preyPopulate(Grid grid) {
+		this.grid = grid;
 		Random rando = new Random();
 		Location loc = new Location(0,0);
 		Prey[] preyArray = new Prey[3];
@@ -49,14 +51,14 @@ public class Prey extends PictureBlock {
 	public void roam(Grid grid) {
 		Random rando = new Random();
 		boolean validDirection = false;
-		List<GridObject> neighbors = this.allNeighbors(grid);
+		List<GridObject> neighbors = this.allNeighbors();
 		
 		GridObject neighbor;
 		while (!validDirection) {
 			
 			neighbor = neighbors.get(rando.nextInt(neighbors.size()));
 			if ( neighbor instanceof Grass) {
-				this.move(grid, neighbor.location());
+				this.move(neighbor.location());
 				validDirection = true;
 			}
 			
@@ -65,7 +67,7 @@ public class Prey extends PictureBlock {
 	}
 	
 	//Moves to the specified location
-	public void move(Grid grid, Location loc) {
+	public void move(Location loc) {
 		grid.remove(loc);
 		this.changeLocation(loc);
 		grid.add(new Grass(), this.position);
@@ -73,7 +75,7 @@ public class Prey extends PictureBlock {
 	}
 	
 	//Returns all neighbors to the prey object
-	public ArrayList<GridObject> allNeighbors(Grid grid) {
+	public ArrayList<GridObject> allNeighbors() {
 		ArrayList<GridObject> neighbors = new ArrayList<GridObject>();
 		List<Location> locations = new ArrayList<Location>();
 		locations = grid.neighborsOf(this.position);

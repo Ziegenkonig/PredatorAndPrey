@@ -22,12 +22,13 @@ import edu.kzoo.grid.PictureBlock;
 
 public class Predator extends PictureBlock {
 	//instance variables
-	double hunger; //refilled by eating prey
-	double thirst; //refilled by drinking from water terrain
+	public double hunger; //refilled by eating prey
+	public double thirst; //refilled by drinking from water terrain
 	int actionCounter; //keeps track of number of ticks a given action has taken so far
 	Prey target; //used to keep track of the current target of the predator
 	Location position;
-	CurrentState state;
+	Grid grid;
+	public CurrentState state;
 	
 	public Predator() {
 		super("resources/Predator.png", "Predator");
@@ -38,8 +39,9 @@ public class Predator extends PictureBlock {
 	}
 	
 	public void initialize(Grid grid) {
-		grid.remove(this.position);
-    	grid.add(this, this.position);
+		this.grid = grid;
+		this.grid.remove(this.position);
+    	this.grid.add(this, this.position);
 	}
 	
 	//Called within tick(), decays the stats of the predator to simulate time passing
@@ -51,17 +53,17 @@ public class Predator extends PictureBlock {
 	}
 	
 	//Decides randomly which direction to move and checks those directions for invalid moves
-	public void roam(Grid grid) {
+	public void roam() {
 		Random rando = new Random();
 		boolean validDirection = false;
-		List<GridObject> neighbors = this.allNeighbors(grid);
+		List<GridObject> neighbors = this.allNeighbors();
 		
 		GridObject neighbor;
 		while (!validDirection) {
 			
 			neighbor = neighbors.get(rando.nextInt(neighbors.size()));
 			if ( neighbor instanceof Grass) {
-				this.move(grid, neighbor.location());
+				this.move(neighbor.location());
 				validDirection = true;
 			}
 			
@@ -70,7 +72,7 @@ public class Predator extends PictureBlock {
 	}
 		
 	//Moves to the specified location (takes one tick)
-	public void move(Grid grid, Location loc) {
+	public void move(Location loc) {
 		grid.remove(loc);
 		this.changeLocation(loc);
 		grid.add(new Grass(), this.position);
@@ -78,14 +80,14 @@ public class Predator extends PictureBlock {
 	}
 	
 	//Decides which action to take
-	public void stateController(Grid grid, Prey[] prey) {
+	public void stateController(Prey[] prey) {
 		
 		switch (this.state) {
 			case IDLE: //Decide which action needs to be taken here depending on hunger/thirst
-				if (hunger < 50.0)
+				if (hunger <= 70.0)
 					initiateHunt(prey[0]);
 				else
-					roam(grid);
+					roam();
 				break;
 			
 			case EATING: //eating takes 2 ticks
@@ -105,7 +107,7 @@ public class Predator extends PictureBlock {
 				break;
 				
 			case HUNTING: //while hunting we need to call hunt() every tick
-				hunt(grid);
+				hunt();
 				break;
 				
 			case SLEEPING: //sleeping is not yet implemented
@@ -131,31 +133,32 @@ public class Predator extends PictureBlock {
 	}
 	
 	//the hunt cycle
-	public void hunt(Grid grid) {
+	public void hunt() {
 		
 		//Getting current distance between predator and prey
-		double distance = SimulatedAnnealing.distanceFormula(this.position.row(), target.position.row(), 
-															 this.position.col(), target.position.col());
+		double distance = SimulatedAnnealing.distanceFormula(this.getPosition(), target.getPosition());
 		
 		//If our current location is adjacent to the prey, then we need to attack and end the hunt
-		if (distance <= 1.0)
+		if (this.allNeighbors().contains(target))
 			this.attack(target);
-			
+		else {
 		//Setting next move using simulated annealing algorithm
-		Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this.position, target.getPosition() );
+		Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this, this.target);
 		
 		//Making the actual move
-		this.move(grid, nextMove);
+		this.move(nextMove);
+		}
 	}
 	
 	//Attacks the specified target
 	public void attack(Prey target) {
+		System.out.println("Hunting Successful!");
 		this.state = CurrentState.IDLE;
 		this.hunger = 100.0;
 	}
 	
 	//Returns all neighbors to the prey object
-	public ArrayList<GridObject> allNeighbors(Grid grid) {
+	public ArrayList<GridObject> allNeighbors() {
 		ArrayList<GridObject> neighbors = new ArrayList<GridObject>();
 		List<Location> locations = new ArrayList<Location>();
 		locations = grid.neighborsOf(this.position);
