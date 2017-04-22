@@ -19,26 +19,26 @@ public class Prey extends PictureBlock {
 	Location position;
 	Grid grid;
 	
-	public Prey() {
+	public Prey(Grid grid) {
 		super("resources/Prey.png", "Prey");
 		this.hunger = 100.0;
 		this.thirst = 100.0;
 		this.position = new Location(0,0);
+		this.grid = grid;
 	}
 	
 	//Randomly populates the grid with 3 prey
-	public Prey[] preyPopulate(Grid grid) {
-		this.grid = grid;
+	public Prey[] preyPopulate(int amount) {
 		Random rando = new Random();
 		Location loc = new Location(0,0);
-		Prey[] preyArray = new Prey[3];
+		Prey[] preyArray = new Prey[amount];
 		
 		for (int i = 0; i < 3; i++) {
-			loc = new Location(rando.nextInt(9), rando.nextInt(9));
+			loc = new Location(rando.nextInt(this.grid.numRows()-1), rando.nextInt(this.grid.numCols()-1));
 			if (grid.objectAt(loc) instanceof Predator || grid.objectAt(loc) instanceof Water) {
 				i--;
 			} else {
-				preyArray[i] = new Prey();
+				preyArray[i] = new Prey(this.grid);
 				preyArray[i].setPosition(loc);
 				grid.remove(loc);
 				grid.add(preyArray[i], loc);

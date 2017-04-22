@@ -4,9 +4,10 @@ package Actors;
 
 public enum CurrentState {
 	IDLE,
-	EATING,
-	DRINKING,
 	HUNTING,
+	EATING,
+	MOVINGTOWATER,
+	DRINKING,
 	SLEEPING,
 	SNEAKING,
 	MOVING

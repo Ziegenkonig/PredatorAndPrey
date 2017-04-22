@@ -74,63 +74,7 @@ public class SimulatedAnnealing {
 				temp *= 1-coolingRate;
 			}
 		}
-		
 		return null;
-	}
-	
-	//Returns the best path that will deliver you to the specified target
-	public static List<Location> simulatedAnnealingPath(Grid grid, GridObject object1, GridObject object2) {
-		//bestMove keeps track of the best move found by simulated annealing
-		ArrayList<Location> bestPath = new ArrayList<Location>();
-		
-		//set initial temp - this will determine how long the algorithm runs
-		double temp = 1000;
-		
-		//Setting the locations of object1 and object2
-		Location initialLoc = object1.location();
-		Location finalLoc = object2.location();
-		
-		//set cooling rate - this will determine how quickly temp decreases
-		double coolingRate = .003;
-		
-		//keep track of current index
-		int currentIndex = 0;
-		
-		//Loop until system has cooled
-		while (temp > 1) {
-			//Creat new location
-			Location newLoc = new Location(0, 0);
-			
-			//Get some random direction to move in
-			Direction randomDirection = Direction.randomDirection();
-			
-			if ( grid.isValid(grid.getNeighbor(initialLoc, randomDirection)) &&
-					   ( grid.objectAt(grid.getNeighbor(initialLoc, randomDirection)) ) instanceof Grass) {
-				//set newLoc to new location one space away from initialLocation in random direction
-				newLoc = grid.getNeighbor(initialLoc, randomDirection);
-			
-				//Check new distance formula (newEnergy) and current distance formula (currentEnergy)
-				//We pass this into the accepted probability function
-				double newEnergy = distanceFormula(newLoc, finalLoc);
-				double currentEnergy = distanceFormula(initialLoc, finalLoc);
-				double bestEnergy = distanceFormula(bestPath.get(currentIndex), finalLoc);
-				
-				//Decide if we accept the new location
-				if ( acceptanceProbability(currentEnergy, newEnergy, temp) > Math.random())
-					initialLoc = newLoc;
-				
-				//Setting best to newLoc if newLoc is better
-				if ( currentEnergy < bestEnergy) {
-					bestPath.add(newLoc);
-					currentIndex ++;
-				}
-				
-				//cool system
-				temp *= 1-coolingRate;
-			}
-		}
-		
-		return bestPath;
 	}
 	
 }

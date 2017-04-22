@@ -20,6 +20,7 @@ public class Controller {
     private int tickCounter;
     Predator predator;
     Prey[] preyArray;
+    Water[] waterArray;
     
     /** Constructs a new Controller object. **/
     public Controller(GridAppFrame gui) {
@@ -35,18 +36,20 @@ public class Controller {
     	//Initializing the objects in the grid
     	Grass.fillGrid(grid);
     	predator.initialize(grid);
-    	Water.waterPopulate(grid);
-    	Prey prey = new Prey();
-    	preyArray = prey.preyPopulate(grid);
+    	
+    	Water water = new Water(grid);
+    	waterArray = water.waterPopulate(3);
+    	Prey prey = new Prey(grid);
+    	preyArray = prey.preyPopulate(3);
     	
     	gui.showGrid();
     	
     	while (tickCounter <= 50) {
     		
     		//Here we are printing important info into the console for debugging
-    		System.out.println("|Predator's Hunger: " + predator.hunger + " | Currently: " + predator.state + " | Turn: " + tickCounter);
+    		System.out.println("|Predator's Hunger: " + predator.hunger + "|Predator's Thirst: " + predator.thirst + " | Currently: " + predator.state + " | Turn: " + tickCounter);
     		
-    		predator.stateController(preyArray);
+    		predator.stateController(preyArray, waterArray);
     		
 //    		for (Prey currentPrey : preyArray)
 //    			currentPrey.roam(grid);

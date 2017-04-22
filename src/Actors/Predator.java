@@ -2,10 +2,13 @@ package Actors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
+import Algorithms.GeneticAlgorithm;
 import Algorithms.SimulatedAnnealing;
 import Terrain.Grass;
+import Terrain.Water;
 import edu.kzoo.grid.Grid;
 import edu.kzoo.grid.GridObject;
 import edu.kzoo.grid.Location;
@@ -25,7 +28,9 @@ public class Predator extends PictureBlock {
 	public double hunger; //refilled by eating prey
 	public double thirst; //refilled by drinking from water terrain
 	int actionCounter; //keeps track of number of ticks a given action has taken so far
-	Prey target; //used to keep track of the current target of the predator
+	Prey huntingTarget; //used to keep track of the current prey target of the predator
+	Water drinkingTarget; //used to keep track of the current water target of the predator
+	ArrayList<Location> currentPath;
 	Location position;
 	Grid grid;
 	public CurrentState state;
@@ -62,7 +67,7 @@ public class Predator extends PictureBlock {
 		while (!validDirection) {
 			
 			neighbor = neighbors.get(rando.nextInt(neighbors.size()));
-			if ( neighbor instanceof Grass) {
+			if ( neighbor instanceof Grass ) {
 				this.move(neighbor.location());
 				validDirection = true;
 			}
@@ -80,12 +85,14 @@ public class Predator extends PictureBlock {
 	}
 	
 	//Decides which action to take
-	public void stateController(Prey[] prey) {
+	public void stateController(Prey[] prey, Water[] water) {
 		
 		switch (this.state) {
 			case IDLE: //Decide which action needs to be taken here depending on hunger/thirst
-				if (hunger <= 70.0)
-					initiateHunt(prey[0]);
+//				if (hunger <= 70.0)
+//					initiateHunt(prey[0]);
+				if (thirst <= 70.0)
+					initiateMoveToWater(water[0]);
 				else
 					roam();
 				break;
@@ -98,14 +105,13 @@ public class Predator extends PictureBlock {
 				actionCounter ++;
 				break;
 				
-			case DRINKING: //drinking takes 2 ticks
-				if (actionCounter == 2) {
-					actionCounter = 0;
-					this.state = CurrentState.IDLE;
-				}
-				actionCounter++;
+			case MOVINGTOWATER: //while movingtowater we need to call moveToWater() every tick
+				moveToWater();
 				break;
 				
+			case DRINKING: //drinking takes 2 ticks
+				this.state = CurrentState.IDLE;
+				break;
 			case HUNTING: //while hunting we need to call hunt() every tick
 				hunt();
 				break;
@@ -124,11 +130,39 @@ public class Predator extends PictureBlock {
 		}
 	}
 	
+	//Initiates the drinking cycle
+	public void initiateMoveToWater(Water target) {
+		
+		if (this.allNeighbors().contains(drinkingTarget)) {
+			this.state = CurrentState.DRINKING;
+		} else {
+			this.state = CurrentState.MOVINGTOWATER;
+			this.drinkingTarget = target;
+			GeneticAlgorithm algorithm = new GeneticAlgorithm(this.position, drinkingTarget.getPosition(), this.grid);
+			this.currentPath = algorithm.getBestRoute();
+			System.out.println(currentPath.toString());
+		}
+		
+	}
+	
+	public void moveToWater() {
+		
+		if (this.allNeighbors().contains(drinkingTarget)) {
+			this.thirst = 100.0;
+			System.out.println("Drinking from: " + this.position);
+			this.state = CurrentState.DRINKING;
+		} else if (!this.currentPath.isEmpty()) {
+			this.move(currentPath.get(0));
+			this.currentPath.remove(0);
+		}
+		
+	}
+	
 	//Initiates the hunting cycle
 	public void initiateHunt(Prey target) {
 		
 		this.state = CurrentState.HUNTING;
-		this.target = target;
+		this.huntingTarget = target;
 		
 	}
 	
@@ -136,17 +170,17 @@ public class Predator extends PictureBlock {
 	public void hunt() {
 		
 		//Getting current distance between predator and prey
-		double distance = SimulatedAnnealing.distanceFormula(this.getPosition(), target.getPosition());
+		double distance = SimulatedAnnealing.distanceFormula(this.getPosition(), huntingTarget.getPosition());
 		
 		//If our current location is adjacent to the prey, then we need to attack and end the hunt
-		if (this.allNeighbors().contains(target))
-			this.attack(target);
+		if (this.allNeighbors().contains(huntingTarget))
+			this.attack(huntingTarget);
 		else {
-		//Setting next move using simulated annealing algorithm
-		Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this, this.target);
-		
-		//Making the actual move
-		this.move(nextMove);
+			//Setting next move using simulated annealing algorithm
+			Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this, this.huntingTarget);
+			
+			//Making the actual move
+			this.move(nextMove);
 		}
 	}
 	
