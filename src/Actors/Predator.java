@@ -7,8 +7,10 @@ import java.util.Random;
 
 import Algorithms.GeneticAlgorithm;
 import Algorithms.SimulatedAnnealing;
+import ApplicationManagement.Controller;
 import Terrain.Grass;
 import Terrain.Water;
+import edu.kzoo.grid.Direction;
 import edu.kzoo.grid.Grid;
 import edu.kzoo.grid.GridObject;
 import edu.kzoo.grid.Location;
@@ -30,6 +32,9 @@ public class Predator extends PictureBlock {
 	int actionCounter; //keeps track of number of ticks a given action has taken so far
 	Prey huntingTarget; //used to keep track of the current prey target of the predator
 	Water drinkingTarget; //used to keep track of the current water target of the predator
+
+	Controller controller;
+	
 	ArrayList<Location> currentPath;
 	Location position;
 	Grid grid;
@@ -43,7 +48,8 @@ public class Predator extends PictureBlock {
 		this.state = CurrentState.IDLE;
 	}
 	
-	public void initialize(Grid grid) {
+	public void initialize(Grid grid, Controller controller) {
+		this.controller = controller;
 		this.grid = grid;
 		this.grid.remove(this.position);
     	this.grid.add(this, this.position);
@@ -52,8 +58,8 @@ public class Predator extends PictureBlock {
 	//Called within tick(), decays the stats of the predator to simulate time passing
 	public void decay() {
 		
-		this.hunger = this.hunger - 10;
-		this.thirst = this.thirst - 10;
+		this.hunger = this.hunger - 5;
+		this.thirst = this.thirst - 3;
 		
 	}
 	
@@ -84,15 +90,47 @@ public class Predator extends PictureBlock {
 		this.position = loc;
 	}
 	
+	//Finds closest prey to predator
+	public Prey closestPrey() {
+		
+		Prey closest = new Prey(this.grid);
+		int distance = Integer.MAX_VALUE;
+		for (Prey prey : controller.getPreyArray()) {
+
+			if ( SimulatedAnnealing.distanceFormula(this.getPosition(), prey.getPosition()) < distance)
+				closest = prey;
+			
+		}
+			
+		return closest;
+	}
+	
+	//Finds closest water to predator
+	public Water closestWater() {
+		
+		Water closest = new Water(this.grid);
+		int distance = Integer.MAX_VALUE;
+		for (Water water : controller.getWaterArray()) {
+
+			if ( SimulatedAnnealing.distanceFormula(this.getPosition(), water.getPosition()) < distance)
+				closest = water;
+			
+		}
+			
+		return closest;
+	}
+	
+	//Finds closest water to predator
+	
 	//Decides which action to take
-	public void stateController(Prey[] prey, Water[] water) {
+	public void stateController() {
 		
 		switch (this.state) {
 			case IDLE: //Decide which action needs to be taken here depending on hunger/thirst
-//				if (hunger <= 70.0)
-//					initiateHunt(prey[0]);
-				if (thirst <= 70.0)
-					initiateMoveToWater(water[0]);
+				if (hunger <= 60.0)
+					initiateHunt(closestPrey());
+				else if (thirst <= 50.0)
+					initiateMoveToWater(closestWater());
 				else
 					roam();
 				break;
@@ -133,15 +171,11 @@ public class Predator extends PictureBlock {
 	//Initiates the drinking cycle
 	public void initiateMoveToWater(Water target) {
 		
-		if (this.allNeighbors().contains(drinkingTarget)) {
-			this.state = CurrentState.DRINKING;
-		} else {
 			this.state = CurrentState.MOVINGTOWATER;
 			this.drinkingTarget = target;
 			GeneticAlgorithm algorithm = new GeneticAlgorithm(this.position, drinkingTarget.getPosition(), this.grid);
 			this.currentPath = algorithm.getBestRoute();
 			System.out.println(currentPath.toString());
-		}
 		
 	}
 	
@@ -180,22 +214,40 @@ public class Predator extends PictureBlock {
 			Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this, this.huntingTarget);
 			
 			//Making the actual move
-			this.move(nextMove);
+			if (grid.objectAt(nextMove) instanceof Grass)
+				this.move(nextMove);
 		}
 	}
 	
 	//Attacks the specified target
 	public void attack(Prey target) {
+		//remove prey from grid, as well as remove prey from the controller's prey array so that a new one can be populated
+		grid.remove(target.getPosition());
+		move(target.position);
+		
+		Prey[] updatedPrey = controller.getPreyArray();
+		for (int i = 0; i < controller.getPreyArray().length; i++) {
+			if (updatedPrey[i].getPosition() == target.getPosition())
+				updatedPrey[i] = null;
+		}
+		controller.setPreyArray(updatedPrey);
+			
 		System.out.println("Hunting Successful!");
 		this.state = CurrentState.IDLE;
 		this.hunger = 100.0;
 	}
 	
-	//Returns all neighbors to the prey object
+	//Returns all neighbors to the predator object
 	public ArrayList<GridObject> allNeighbors() {
 		ArrayList<GridObject> neighbors = new ArrayList<GridObject>();
 		List<Location> locations = new ArrayList<Location>();
 		locations = grid.neighborsOf(this.position);
+
+		//Optional depending on program setup
+		locations.add( new Location(this.position.row()+1, this.position.col()-1) );
+		locations.add( new Location(this.position.row()-1, this.position.col()+1) );
+		locations.add( new Location(this.position.row()+1, this.position.col()+1) );
+		locations.add( new Location(this.position.row()-1, this.position.col()-1) );
 		
 		for (Location loc : locations)
 			neighbors.add(grid.objectAt(loc));
@@ -209,6 +261,26 @@ public class Predator extends PictureBlock {
 	
 	public void setLocation(Location position) {
 		this.position = position;
+	}
+	
+	public double getHunger() {
+		return hunger;
+	}
+
+	public double getThirst() {
+		return thirst;
+	}
+
+	public Prey getHuntingTarget() {
+		return huntingTarget;
+	}
+
+	public Water getDrinkingTarget() {
+		return drinkingTarget;
+	}
+
+	public CurrentState getState() {
+		return state;
 	}
 	
 }

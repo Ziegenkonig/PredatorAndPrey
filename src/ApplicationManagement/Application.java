@@ -1,3 +1,4 @@
+package ApplicationManagement;
 import edu.kzoo.grid.display.DisplayMap;
 import edu.kzoo.grid.display.ScaledImageDisplay;
 import edu.kzoo.grid.gui.GridAppFrame;

@@ -29,14 +29,6 @@ public class GeneticAlgorithm {
 		
 		this.best = allChromosomes.get(0);
 		
-		//Run the genetic algorithm 1000 times
-//		for (int i = 0; i < 1000; i++) {
-//			
-//			this.crossover();
-//			this.massMutation();
-//			
-//		}
-		
 		ArrayList<Location> neighbors = grid.neighborsOf(best.simulate());
 		while ( !neighbors.contains(best.getGoal()) ) {
 			
@@ -46,22 +38,11 @@ public class GeneticAlgorithm {
 			
 			neighbors = grid.neighborsOf(best.simulate());
 		}
-
-		
-//		for (Chromosome chromosome : allChromosomes) {
-//			System.out.println(chromosome.moves);
-//			chromosome.decode();
-//			System.out.println(chromosome.getLocations().toString());
-//		}
 		
 		//set best route
 		fittestOfTheFit();
 		this.best.decode();
 		this.bestRoute = best.getLocations();
-		
-		System.out.println("Initial: " + best.getInitial().toString());
-		System.out.println("Goal: " + best.getGoal().toString());
-		System.out.println("Final: " + best.simulate().toString());
 		
 	}
 

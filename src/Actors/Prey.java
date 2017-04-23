@@ -27,22 +27,48 @@ public class Prey extends PictureBlock {
 		this.grid = grid;
 	}
 	
+	//Add single prey randomly into grid
+	public Prey spawn() {
+		Random rando = new Random();
+		Location loc = new Location(0,0);
+		
+		Prey prey = new Prey(this.grid);
+		
+		loc = new Location(rando.nextInt(this.grid.numRows()-1), rando.nextInt(this.grid.numCols()-1));
+		
+		boolean placed = false;
+		while (!placed) {
+			if ( !(grid.objectAt(loc) instanceof Predator || grid.objectAt(loc) instanceof Water) ) {
+				prey.setPosition(loc);
+				grid.remove(loc);
+				grid.add(prey, loc);
+				placed = true;
+			}
+		}
+		return prey;
+	}
+	
 	//Randomly populates the grid with 3 prey
 	public Prey[] preyPopulate(int amount) {
 		Random rando = new Random();
 		Location loc = new Location(0,0);
 		Prey[] preyArray = new Prey[amount];
 		
+		boolean placed = false;
 		for (int i = 0; i < 3; i++) {
 			loc = new Location(rando.nextInt(this.grid.numRows()-1), rando.nextInt(this.grid.numCols()-1));
-			if (grid.objectAt(loc) instanceof Predator || grid.objectAt(loc) instanceof Water) {
-				i--;
-			} else {
-				preyArray[i] = new Prey(this.grid);
-				preyArray[i].setPosition(loc);
-				grid.remove(loc);
-				grid.add(preyArray[i], loc);
-			}
+			
+			while(!placed)
+				if (grid.objectAt(loc) instanceof Predator || grid.objectAt(loc) instanceof Water) {
+					i--;
+				} else {
+					preyArray[i] = new Prey(this.grid);
+					preyArray[i].setPosition(loc);
+					grid.remove(loc);
+					grid.add(preyArray[i], loc);
+					placed = true;
+				}
+			placed = false;
 		}
 		return preyArray;
 	}
@@ -57,7 +83,7 @@ public class Prey extends PictureBlock {
 		while (!validDirection) {
 			
 			neighbor = neighbors.get(rando.nextInt(neighbors.size()));
-			if ( neighbor instanceof Grass) {
+			if ( neighbor instanceof Grass && grid.isValid(neighbor.location())) {
 				this.move(neighbor.location());
 				validDirection = true;
 			}
