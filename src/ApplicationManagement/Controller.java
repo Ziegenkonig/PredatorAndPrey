@@ -52,10 +52,10 @@ public class Controller {
     	
     	gui.showGrid();
     	
-    	while (tickCounter <= 50) {
+    	while (tickCounter <= 150) {
     		statsWindow.refresh();
     		//Here we are printing important info into the console for debugging
-    		System.out.println("|Predator's Hunger: " + predator.hunger + "|Predator's Thirst: " + predator.thirst + " | Currently: " + predator.state + " | Turn: " + tickCounter);
+    		//System.out.println("|Predator's Hunger: " + predator.hunger + "|Predator's Thirst: " + predator.thirst + " | Currently: " + predator.state + " | Turn: " + tickCounter);
     		
     		int index = 0;
     		for (Prey currentPrey : preyArray) {

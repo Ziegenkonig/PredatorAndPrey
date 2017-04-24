@@ -32,7 +32,10 @@ public class Predator extends PictureBlock {
 	int actionCounter; //keeps track of number of ticks a given action has taken so far
 	Prey huntingTarget; //used to keep track of the current prey target of the predator
 	Water drinkingTarget; //used to keep track of the current water target of the predator
-
+	double huntingDistance; //keeps track of distance traveled during hunting cycle
+	Location initialHunting;
+	long huntingTime;
+	
 	Controller controller;
 	
 	ArrayList<Location> currentPath;
@@ -173,10 +176,23 @@ public class Predator extends PictureBlock {
 		
 			this.state = CurrentState.MOVINGTOWATER;
 			this.drinkingTarget = target;
+			System.out.println("Straight Distance: " + SimulatedAnnealing.distanceFormula(this.position, drinkingTarget.getPosition()));
+			long currentTime = System.currentTimeMillis();
 			GeneticAlgorithm algorithm = new GeneticAlgorithm(this.position, drinkingTarget.getPosition(), this.grid);
+			System.out.println("Time Taken: " + (System.currentTimeMillis() - currentTime));
 			this.currentPath = algorithm.getBestRoute();
-			System.out.println(currentPath.toString());
-		
+
+//			Location last;
+//			Location current;
+//			double distanceTraveled = 0;
+//			for (int i = 0; i < currentPath.size(); i++) {
+//				if (i+1 != currentPath.size()) {
+//					last = currentPath.get(i);
+//					current = currentPath.get(i+1);
+//					distanceTraveled += SimulatedAnnealing.distanceFormula(last, current);
+//				}
+//			}
+//			System.out.println("Distance Traveled: " + distanceTraveled);
 	}
 	
 	public void moveToWater() {
@@ -198,29 +214,38 @@ public class Predator extends PictureBlock {
 		this.state = CurrentState.HUNTING;
 		this.huntingTarget = target;
 		
+		this.initialHunting = this.position;
+		this.huntingTime = 0;
 	}
 	
 	//the hunt cycle
 	public void hunt() {
-		
-		//Getting current distance between predator and prey
-		double distance = SimulatedAnnealing.distanceFormula(this.getPosition(), huntingTarget.getPosition());
 		
 		//If our current location is adjacent to the prey, then we need to attack and end the hunt
 		if (this.allNeighbors().contains(huntingTarget))
 			this.attack(huntingTarget);
 		else {
 			//Setting next move using simulated annealing algorithm
+			long initialTime = System.currentTimeMillis();
 			Location nextMove = SimulatedAnnealing.simulatedAnnealingMove( grid, this, this.huntingTarget);
+			this.huntingTime += System.currentTimeMillis() - initialTime;
 			
 			//Making the actual move
-			if (grid.objectAt(nextMove) instanceof Grass)
+			if (grid.objectAt(nextMove) instanceof Grass) {
+				this.huntingDistance += SimulatedAnnealing.distanceFormula(this.position, nextMove);
 				this.move(nextMove);
+			}
 		}
 	}
 	
 	//Attacks the specified target
 	public void attack(Prey target) {
+//		System.out.println("Straight Distance: " + SimulatedAnnealing.distanceFormula(target.getPosition(), this.initialHunting));
+//		System.out.println("Distance Traveled: " + this.huntingDistance);
+//		System.out.println("Time Taken: " + this.huntingTime);
+		this.huntingTime = 0;
+		this.huntingDistance = 0.0;
+		
 		//remove prey from grid, as well as remove prey from the controller's prey array so that a new one can be populated
 		grid.remove(target.getPosition());
 		move(target.position);
